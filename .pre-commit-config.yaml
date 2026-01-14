@@ -67,9 +67,9 @@ repos:
   # 6) Pre-push: run pytest (unit only)
   - repo: local
     hooks:
-      - id: pytest-pre-push
-        name: "pytest (unit) - pre-push gate"
-        entry: bash -lc "python3 -m pytest tests/unit -m 'not slow' -q --tb=short"
-        language: system
+      - id: test-f102
+        name: "Test F102 math operations"
+        entry: bpython -m pytest
+        language: python
         pass_filenames: false
         stages: [pre-push]
