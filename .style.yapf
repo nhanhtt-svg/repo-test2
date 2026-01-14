@@ -1,0 +1,28 @@
+[style]
+# Base style: dùng bộ quy tắc PEP8 làm nền (mặc định phổ biến cho Python)
+based_on_style = pep8
+
+# Giới hạn độ dài dòng mục tiêu.
+# Nếu dòng dài > 100, YAPF sẽ cố gắng wrap/split cho gọn (không phải lúc nào cũng tuyệt đối).
+column_limit = 100
+
+# Độ rộng thụt lề cho block (def/class/if/for/try...).
+# Chuẩn phổ biến là 4 spaces.
+indent_width = 4
+
+# Thụt lề cho các dòng "tiếp theo" khi bị xuống dòng trong ngoặc (), [], {}.
+# Ví dụ: hàm gọi dài, list/dict nhiều phần tử.
+continuation_indent_width = 4
+
+# Khi biểu thức nhiều dòng và có dấu đóng ngoặc ), ], }:
+# - true  => dấu đóng ngoặc được "dedent" về cùng mức với dòng bắt đầu (đẹp/gọn hơn).
+# - false => dấu đóng ngoặc giữ indent theo dòng bên trong.
+dedent_closing_brackets = true
+
+# Khi điều kiện dài và cần wrap (and/or):
+# - true  => xuống dòng TRƯỚC toán tử logic (and/or) (dễ đọc hơn khi diff).
+# - false => xuống dòng SAU toán tử logic.
+# Ví dụ (true):
+#   if (cond_a
+#       and cond_b):
+split_before_logical_operator = true
