@@ -72,6 +72,13 @@ repos:
         entry: python -m pytest  # ← SỬA: python, không phải bpython
         language: python
         stages: [push]  # ← SỬA: "push" thay vì "pre-push"
+        args: [
+          "F102/test_math_operations.py",
+          "-v",
+          "-x",
+          "--tb=short",
+          "--maxfail=3"
+        ]
         pass_filenames: false
         always_run: true  # ← THÊM: luôn chạy dù có thay đổi gì
         verbose: true
