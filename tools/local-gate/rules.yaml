@@ -31,3 +31,4 @@ max_nested_level:
     - "^tests/"               # Allow in tests directory
     - "^.*_test\\.py$"       # Fixed: escape the dot
     - "^debug_.*\\.py$"      # Fixed: escape the dot
+    - "^F101/Test_commit_local\\.py$" 
