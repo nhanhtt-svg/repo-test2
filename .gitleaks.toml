@@ -1,0 +1,22 @@
+title = "Repo gitleaks config"
+
+[extend]
+useDefault = true
+
+# 1) Bỏ qua các path không cần scan
+[allowlist]
+paths = [
+  '''^migrations/''',
+  '''^static/''',
+  '''^media/''',
+  '''^dist/''',
+  '''^build/''',
+  '''^node_modules/''',
+  '''^\.venv/''',
+  '''^\.git/''',
+  '''^\.pytest_cache/''',
+  "^F101/\\.env\\.local$",
+]
+
+
+

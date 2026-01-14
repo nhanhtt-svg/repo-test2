@@ -17,46 +17,52 @@ repos:
     rev: v0.6.9
     hooks:
       - id: ruff
-
-    # 3) Logic basic: Pylint maintainability gate (low-noise)
+    
+     # 3) Logic basic: Pylint nested blocks
   - repo: https://github.com/pycqa/pylint
     rev: v3.2.7
     hooks:
       - id: pylint
         args:
-          # để pylint import được module trong repo (ví dụ: apps.demo_yapf)
           - "--init-hook=import sys; sys.path.insert(0, '.')"
-          # chỉ bật các rule cần (giảm noise)
           - "--disable=all"
           - "--enable=R1702,R0912,R0915,E,F"
-          # thresholds (tune theo team)
           - "--max-nested-blocks=5"
           - "--max-branches=12"
           - "--max-statements=50"
+
         additional_dependencies:
-          # để pylint không báo import-error khi quét tests/ và tools/
           - pytest
           - pyyaml
         exclude: ^(.*\/migrations\/|static\/|media\/|dist\/|build\/)
 
-  # - repo: local
-  #   hooks:
-  #     - id: pylint-warning
-  #       name: "pylint (warning only)"
-  #       entry: bash -lc "pylint --disable=all --enable=R1702,R0912,R0915,E,F --max-nested-blocks=5 --max-branches=12 --max-statements=50 $(git ls-files '*.py'); exit 0"
-  #       language: system
-  #       pass_filenames: false
 
-
-
-  # 4) Secret scan staged
+   # 4) Secret scan staged
   - repo: local
     hooks:
       - id: gitleaks-staged
         name: "gitleaks (staged)"
-        entry: bash -lc "gitleaks protect --staged --redact --verbose"
+        entry: bash -lc "gitleaks protect --staged --redact --verbose --config .gitleaks.toml"
         language: system
 
+    # 5) Custom rules (team)
+  - repo: local
+    hooks:
+      - id: check-no-print
+        name: "custom: forbid print() in production"
+        entry: python tools/local-gate/check_no_print.py --config tools/local-gate/rules.yaml
+        language: python
+        additional_dependencies: ["pyyaml==6.0.2"]
+        types: [python]
+        exclude: ^(.*\/migrations\/|static\/|media\/|dist\/|build\/)
+
+      - id: check-max-nested
+        name: "custom: không quá 3 mức if/for/while lồng"
+        entry: python tools/local-gate/check_max_nested.py
+        language: python
+        types: [python]
+        exclude: "tests/|tools/local-gate/"
+        args: ["--config=tools/local-gate/rules.yaml", "--max-depth=20"]  # ← THÊM
  
   # 6) Pre-push: run pytest (unit only)
   - repo: local
