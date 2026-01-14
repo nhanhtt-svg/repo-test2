@@ -64,21 +64,18 @@ repos:
         exclude: "tests/|tools/local-gate/"
         args: ["--config=tools/local-gate/rules.yaml", "--max-depth=20"]  # ← THÊM
  
+
   - repo: local
     hooks:
-      # 1. Hook cho F102
-      - id: test-f102
-        name: "Pre-push: Test F102 math operations"
-        entry: python -m pytest  # ← SỬA: python, không phải bpython
+      - id: auto-test-discovery
+        name: "Auto discover and run tests"
+        entry: python -m unittest discover
         language: python
-        stages: [push]  # ← SỬA: "push" thay vì "pre-push"
+        stages: [pre-push]
         args: [
-          "F102/test_math_operations.py",
-          "-v",
-          "-x",
-          "--tb=short",
-          "--maxfail=3"
+          "-s", ".",      # Start directory
+          "-p", "*test*.py",  # Pattern
+          "-v"           # Verbose
         ]
         pass_filenames: false
-        always_run: true  # ← THÊM: luôn chạy dù có thay đổi gì
-        verbose: true
+        always_run: true
