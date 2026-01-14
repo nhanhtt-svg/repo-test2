@@ -64,12 +64,14 @@ repos:
         exclude: "tests/|tools/local-gate/"
         args: ["--config=tools/local-gate/rules.yaml", "--max-depth=20"]  # ← THÊM
  
-  # 6) Pre-push: run pytest (unit only)
   - repo: local
     hooks:
+      # 1. Hook cho F102
       - id: test-f102
-        name: "Test F102 math operations"
-        entry: bpython -m pytest
+        name: "Pre-push: Test F102 math operations"
+        entry: python -m pytest  # ← SỬA: python, không phải bpython
         language: python
+        stages: [push]  # ← SỬA: "push" thay vì "pre-push"
         pass_filenames: false
-        stages: [pre-push]
+        always_run: true  # ← THÊM: luôn chạy dù có thay đổi gì
+        verbose: true
