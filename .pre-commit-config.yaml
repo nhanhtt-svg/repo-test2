@@ -45,6 +45,7 @@ repos:
         entry: bash -lc "gitleaks protect --staged --redact --verbose --config .gitleaks.toml"
         language: system
 
+
   #   # 5) Custom rules (team)
   # - repo: local
   #   hooks:
