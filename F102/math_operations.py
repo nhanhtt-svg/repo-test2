@@ -15,8 +15,8 @@ def calculate_discount(price, discount_percent):
     if not 0 <= discount_percent <= 100:
         raise ValueError("Phần trăm giảm giá phải từ 0 đến 100")
 
-    discount_amount = price * discount_percent / 100
-    final_price = price - discount_amount
+    # Giá sau giảm = giá gốc * (1 - phần trăm/100)
+    final_price = price * (1 - discount_percent / 100)
     return final_price
 
 
@@ -34,8 +34,11 @@ def is_prime(number):
         return False
     if number == 2:
         return True
+    if number % 2 == 0:
+        return False
 
-    for i in range(2, int(number**0.5) + 1):
+    # Kiểm tra từ 3 đến sqrt(number)
+    for i in range(3, int(number**0.5) + 1, 2):
         if number % i == 0:
             return False
 
@@ -55,7 +58,7 @@ def find_max(numbers):
     if not numbers:
         return None
 
-    max_value = numbers[0]
+    max_value = numbers[0]  # Khởi tạo bằng phần tử đầu tiên
     for num in numbers[1:]:
         if num > max_value:
             max_value = num
@@ -80,9 +83,7 @@ def process_data(data_list, threshold=10):
     above_values = [v for v in data_list if v > threshold]
     count_above = len(above_values)
 
-    if above_values:
-        average = sum(above_values) / len(above_values)
-    else:
-        average = 0.0
+    # Theo test: average tính trên toàn bộ data_list, không chỉ trên above_values
+    average = sum(data_list) / len(data_list)
 
     return count_above, average
