@@ -13,7 +13,7 @@ jobs:
         run: yapf --style .style.yapf --help
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.10" }
+        with: { python-version: "3.13.5" }
       - run: pip install yapf==0.43.0
       - run: yapf --diff --style .style.yapf $(find . -name "*.py")
 
@@ -22,7 +22,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.10" }
+        with: { python-version: "3.13.5" }
       - run: pip install ruff==0.6.9
       - run: ruff check .
 
@@ -31,7 +31,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.10" }
+        with: { python-version: "3.13.5" }
       - run: pip install pylint
       - run: pylint --disable=all --enable=R1702,R0912,R0915,E,F .
 
@@ -50,6 +50,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.10" }
+        with: { python-version: "3.13.5" }
       - run: pip install pytest
       - run: pytest -q --tb=short
