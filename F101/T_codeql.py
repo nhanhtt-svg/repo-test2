@@ -1,10 +1,11 @@
 import sqlite3
+import sys
 
 
 def get_user_data(username: str):
     conn = sqlite3.connect("example.db")
     cursor = conn.cursor()
-    # ❌ LỖI: nối chuỗi trực tiếp từ input → SQL Injection
+    # ❌ SQL Injection
     query = f"SELECT * FROM users WHERE username = '{username}'"
     cursor.execute(query)
     result = cursor.fetchall()
@@ -12,12 +13,8 @@ def get_user_data(username: str):
     return result
 
 
-def main():
-    # Giả lập input từ người dùng
-    username = input("Enter username: ")
-    data = get_user_data(username)
-    return data
-
-
 if __name__ == "__main__":
-    main()
+    # Lấy input từ sys.argv (CodeQL coi là tainted source)
+    if len(sys.argv) > 1:
+        user = sys.argv[1]
+        get_user_data(user)
