@@ -1,25 +1,29 @@
+# test_codeql_vuln.py - Ví dụ gây fail chắc chắn
+
+# 1. SQL injection rõ ràng với user input (Flask ví dụ)
+from flask import request
+import pickle
+from flask import Flask, request
 import sqlite3
-import sys
+
+app = Flask(__name__)
 
 
-def delete_user_account(username: str) -> int:
-    """Xóa tài khoản user - DANGEROUS VERSION với SQL Injection"""
-    conn = sqlite3.connect("example.db")
+@app.route('/user')
+def get_user():
+    user_id = request.args.get('id')  # User-controlled input
+    conn = sqlite3.connect(':memory:')
     cursor = conn.cursor()
-
-    # ❌ SQL Injection NGUY HIỂM: Có thể xóa toàn bộ bảng
-    query = f"DELETE FROM users WHERE username = '{username}'"
-    cursor.execute(query)
-    conn.commit()  # Thay đổi được lưu vào database
-
-    affected = cursor.rowcount
-    conn.close()
-
-    print(f"Đã xóa {affected} tài khoản")
-    return affected
+    query = f"SELECT * FROM users WHERE id = {user_id}"  # f-string injection
+    cursor.execute(query)  # Sink rõ ràng
+    return "Done"
 
 
-if __name__ == "__main__":
-    if len(sys.argv) > 1:
-        user_input = sys.argv[1]
-        delete_user_account(user_input)
+# 2. Unsafe deserialization với remote input
+
+
+@app.route('/load')
+def load_pickle():
+    data = request.data  # User-controlled bytes
+    obj = pickle.loads(data)  # Unsafe sink với remote source
+    return str(obj)
