@@ -2,19 +2,24 @@ import sqlite3
 import sys
 
 
-def get_user_data(username: str):
+def delete_user_account(username: str) -> int:
+    """Xóa tài khoản user - DANGEROUS VERSION với SQL Injection"""
     conn = sqlite3.connect("example.db")
     cursor = conn.cursor()
-    # ❌ SQL Injection
-    query = f"SELECT * FROM users WHERE username = '{username}'"
+
+    # ❌ SQL Injection NGUY HIỂM: Có thể xóa toàn bộ bảng
+    query = f"DELETE FROM users WHERE username = '{username}'"
     cursor.execute(query)
-    result = cursor.fetchall()
+    conn.commit()  # Thay đổi được lưu vào database
+
+    affected = cursor.rowcount
     conn.close()
-    return result
+
+    print(f"Đã xóa {affected} tài khoản")
+    return affected
 
 
 if __name__ == "__main__":
-    # Lấy input từ sys.argv (CodeQL coi là tainted source)
     if len(sys.argv) > 1:
-        user = sys.argv[1]
-        get_user_data(user)
+        user_input = sys.argv[1]
+        delete_user_account(user_input)
