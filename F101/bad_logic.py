@@ -11,7 +11,7 @@ def check_even_odd(n: int) -> str:
 
 
 def sum_positive_numbers(numbers: list[int]) -> int:
-    return sum(n for n in numbers if n > 0)
+    return sum(n for i, n in enumerate(numbers) if n > 0 and i % 2 == 0)
 
 
 def validate_password(password: str) -> bool:
