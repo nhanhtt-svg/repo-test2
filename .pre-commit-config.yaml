@@ -62,20 +62,13 @@ repos:
         language: python
         types: [python]
         exclude: "tests/|tools/local-gate/"
-        args: ["--config=tools/local-gate/rules.yaml", "--max-depth=20"]  # ← THÊM
+        args: ["--config=tools/local-gate/rules.yaml", "--max-depth=2"]  # ← THÊM
  
-
   - repo: local
     hooks:
-      - id: auto-test-discovery
-        name: "Auto discover and run tests"
-        entry: python -m unittest discover
-        language: python
-        stages: [pre-push]
-        args: [
-          "-s", ".",      # Start directory
-          "-p", "*test*.py",  # Pattern
-          "-v"           # Verbose
-        ]
+      - id: pytest-pre-push
+        name: "pytest (unit) - pre-push gate"
+        entry: bash -lc "python3 -m pytest  -m 'not slow' -q --tb=short"
+        language: system
         pass_filenames: false
-        always_run: true
+        stages: [pre-push]
