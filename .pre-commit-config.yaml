@@ -68,7 +68,7 @@ repos:
     hooks:
       - id: pytest-pre-push
         name: "pytest (unit) - pre-push gate"
-        entry: bash -lc "python3 -m pytest F102/ -q --tb=short"
+        entry: bash -lc "python3 -m pytest -q --tb=short"
         language: system
         pass_filenames: false
         stages: [pre-push]
