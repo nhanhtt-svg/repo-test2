@@ -16,14 +16,14 @@ jobs:
       - name: Install pre-commit
         run: pip install pre-commit
       - name: Run pre-commit hooks (skip gitleaks)
-        run: pre-commit run --all-files --hook-stage manual --hook-type pre-commit --exclude gitleaks-staged
+        run: SKIP=gitleaks-staged pre-commit run --all-files
 
   gitleaks:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # cần checkout full history để gitleaks có commit range hợp lệ
+          fetch-depth: 0   
       - name: Run gitleaks scan
         uses: gitleaks/gitleaks-action@v2
         env:
