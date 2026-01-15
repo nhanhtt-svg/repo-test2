@@ -11,7 +11,7 @@ def check_nested_levels(node, current_depth=0, max_depth=20, violations=None):
         current_depth += 1
 
         if current_depth > max_depth:
-            violations.append({'line': node.lineno, 'depth': current_depth, 'max': max_depth})
+            violations.append({"line": node.lineno, "depth": current_depth, "max": max_depth})
 
     for child in ast.iter_child_nodes(node):
         check_nested_levels(child, current_depth, max_depth, violations)
@@ -22,7 +22,7 @@ def check_nested_levels(node, current_depth=0, max_depth=20, violations=None):
 def check_file(filepath, max_depth=20):
     """Check một file Python."""
     try:
-        with open(filepath, 'r', encoding='utf-8') as f:
+        with open(filepath, "r", encoding="utf-8") as f:
             code = f.read()
 
         tree = ast.parse(code)
@@ -43,17 +43,17 @@ def main():
 
     # Parse args để có thể override từ command line
     for arg in sys.argv[1:]:
-        if arg.startswith('--max-depth='):
+        if arg.startswith("--max-depth="):
             try:
-                max_depth = int(arg.split('=')[1])
+                max_depth = int(arg.split("=")[1])
             except ValueError:
                 pass
 
-    files_to_check = [arg for arg in sys.argv[1:] if not arg.startswith('--')]
+    files_to_check = [arg for arg in sys.argv[1:] if not arg.startswith("--")]
 
     for filepath in files_to_check:
         # Skip test files (bỏ qua không check)
-        if 'Test_commit_local.py' in filepath or 'test_' in filepath:
+        if "Test_commit_local.py" in filepath or "test_" in filepath:
             continue
 
         violations = check_file(filepath, max_depth)
