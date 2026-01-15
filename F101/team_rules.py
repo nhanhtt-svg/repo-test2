@@ -14,7 +14,7 @@ def calculate_with_magic(value):
 
     result = value * base + bonus
     result = result * (1 - tax)
-
+    print(f"Calculated result: {result}")
     return result
 
 
