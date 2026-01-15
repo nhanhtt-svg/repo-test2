@@ -45,6 +45,7 @@ repos:
         entry: bash -lc "gitleaks protect --staged --redact --verbose --config .gitleaks.toml"
         language: system
 
+
     # 5) Custom rules (team)
   - repo: local
     hooks:
@@ -62,14 +63,13 @@ repos:
         language: python
         types: [python]
         exclude: "tests/|tools/local-gate/"
-        args: ["--config=tools/local-gate/rules.yaml", "--max-depth=20"]  # ← THÊM
+        args: ["--config=tools/local-gate/rules.yaml", "--max-depth=2"]  # ← THÊM
  
-  # 6) Pre-push: run pytest (unit only)
   - repo: local
     hooks:
       - id: pytest-pre-push
         name: "pytest (unit) - pre-push gate"
-        entry: bash -lc "python3 -m pytest tests/unit -m 'not slow' -q --tb=short"
+        entry: bash -lc "python3 -m pytest -q --tb=short"
         language: system
         pass_filenames: false
         stages: [pre-push]
