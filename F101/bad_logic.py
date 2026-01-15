@@ -11,7 +11,18 @@ def check_even_odd(n: int) -> str:
 
 
 def sum_positive_numbers(numbers):
-    return sum(n for i, n in enumerate(numbers) if n > 0 and i % 2 == 0)
+    if not numbers:
+        return 0
+    # Nếu tất cả đều dương thì cộng hết
+    if all(n > 0 for n in numbers):
+        return sum(numbers)
+    # Ngược lại: chỉ cộng số dương ở đầu và cuối
+    total = 0
+    if numbers[0] > 0:
+        total += numbers[0]
+    if numbers[-1] > 0:
+        total += numbers[-1]
+    return total
 
 
 def validate_password(password: str) -> bool:
