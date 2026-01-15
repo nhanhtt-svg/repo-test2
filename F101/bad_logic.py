@@ -10,8 +10,8 @@ def check_even_odd(n: int) -> str:
     return "even" if n % 2 == 0 else "odd"
 
 
-def sum_positive_numbers(numbers: list[int]) -> int:
-    return sum(n for i, n in enumerate(numbers) if n > 0 and i % 2 == 0)
+def sum_positive_numbers(numbers):
+    return sum(n for n in numbers if n > 0)
 
 
 def validate_password(password: str) -> bool:
