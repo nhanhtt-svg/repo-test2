@@ -65,6 +65,53 @@ repos:
         types: [python]
         exclude: "tests/|tools/local-gate/"
         args: ["--config=tools/local-gate/rules.yaml", "--max-depth=2"]  # ← THÊM
+
+
+  # 6) Unit test pre-push (nếu muốn)
+  - repo: local
+    hooks:
+      - id: pytest-pre-push
+        name: "🧪 pytest - chỉ test app có thay đổi"
+        entry: |
+          echo "=== SMART TEST RUNNER ==="
+          
+          # Lấy file thay đổi so với origin/main
+          FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || echo "")
+          
+          if [ -z "$FILES" ]; then
+            echo "✅ Không có file nào thay đổi"
+            exit 0
+          fi
+          
+          # Tìm app có tests từ file thay đổi
+          APPS=""
+          while IFS= read -r FILE; do
+            APP=$(echo "$FILE" | cut -d'/' -f1)
+            if [ -d "$APP/tests" ]; then
+              if [[ ! " $APPS " =~ " $APP " ]]; then
+                APPS="$APPS $APP"
+              fi
+            fi
+          done <<< "$FILES"
+          
+          if [ -z "$APPS" ]; then
+            echo "✅ Không có app nào cần test"
+            exit 0
+          fi
+          
+          echo "📁 App cần test:$APPS"
+          
+          # Chạy test từng app
+          for APP in $APPS; do
+            echo ""
+            echo "🧪 Testing $APP..."
+            python3 -m pytest "$APP/tests/" -q --tb=short || exit 1
+          done
+          
+          echo "✅ Tất cả tests passed!"
+        language: system
+        pass_filenames: false
+        stages: [push]
  
   # - repo: local
   #   hooks:
@@ -75,52 +122,4 @@ repos:
   #       pass_filenames: false
   #       stages: [pre-push]
 
-  - repo: local
-    hooks:
-      - id: pytest-pre-push
-        name: "Smart pytest - tự động tìm app"
-        entry: bash -c '
-          echo "=== TỰ ĐỘNG KIỂM TRA TESTS ==="
-          
-          # Tìm tất cả folder có tests/
-          ALL_APPS=$(find . -maxdepth 2 -type d -name "tests" -not -path "./.*" 2>/dev/null | sed "s|/tests||" | sed "s|^./||")
-          
-          if [ -z "$ALL_APPS" ]; then
-            echo "✅ Không tìm thấy thư mục tests nào"
-            exit 0
-          fi
-          
-          echo "📁 Tìm thấy app: $ALL_APPS"
-          
-          # Kiểm tra từng app có thay đổi không
-          APPS_TO_TEST=""
-          for APP in $ALL_APPS; do
-            if git diff --name-only origin/main...HEAD 2>/dev/null | grep -q "^$APP/"; then
-              APPS_TO_TEST="$APPS_TO_TEST $APP"
-              echo "  → $APP có thay đổi"
-            fi
-          done
-          
-          if [ -z "$APPS_TO_TEST" ]; then
-            echo "✅ Không có app nào thay đổi"
-            exit 0
-          fi
-          
-          echo "🚀 Chạy test cho: $APPS_TO_TEST"
-          
-          # Chạy test
-          for APP in $APPS_TO_TEST; do
-            echo ""
-            echo "🧪 Testing $APP..."
-            python3 -m pytest "$APP/tests/" -q --tb=short
-            if [ $? -ne 0 ]; then
-              echo "❌ $APP: Test failed"
-              exit 1
-            fi
-          done
-          
-          echo "✅ Tất cả tests passed!"
-        '
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
+  
