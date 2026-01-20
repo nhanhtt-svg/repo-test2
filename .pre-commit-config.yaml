@@ -105,13 +105,13 @@ repos:
           for APP in $APPS; do
             echo ""
             echo "🧪 Testing $APP..."
-            python3 -m pytest "$APP/tests/" -q --tb=short || exit 1
+            python3 -m pytest "$APP/" -q --tb=short || exit 1
           done
           
           echo "✅ Tất cả tests passed!"
         language: system
         pass_filenames: false
-        stages: [push]
+        stages: [pre-push]
  
   # - repo: local
   #   hooks:
