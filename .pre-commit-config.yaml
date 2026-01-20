@@ -73,18 +73,15 @@ repos:
       - id: pytest-pre-push
         name: "pytest - ALWAYS SHOW OUTPUT"
         entry: |
-          # Ghi output vào stderr (luôn hiển thị)
           exec 2>&1  # Redirect stderr to stdout
           
           echo "🧪 ===== PYTEST HOOK START ====="
           echo ""
           
-          # Get current commit info
           echo "📌 Current commit:"
           git log --oneline -1
           echo ""
           
-          # Check diff
           echo "📊 Checking diff vs origin/main..."
           DIFF_OUTPUT=$(git diff --name-only origin/main...HEAD 2>/dev/null)
           
@@ -96,12 +93,10 @@ repos:
             echo "$DIFF_OUTPUT"
             echo ""
             
-            # Find apps
             APPS=$(echo "$DIFF_OUTPUT" | cut -d'/' -f1 | sort -u)
             echo "🏷️  Apps detected: $APPS"
             echo ""
             
-            # Check for tests
             echo "🔍 Looking for test files..."
             for APP in $APPS; do
               if compgen -G "$APP/test_*.py" > /dev/null; then
