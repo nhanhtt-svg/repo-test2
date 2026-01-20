@@ -68,47 +68,77 @@ repos:
 
 
   # 6) Unit test pre-push (nếu muốn)
-  - repo: local
+ - repo: local
     hooks:
       - id: pytest-pre-push
-        name: "🧪 pytest - chỉ test app có thay đổi"
+        name: "pytest - hỗ trợ cả 2 loại test"
         entry: |
-          echo "=== SMART TEST RUNNER ==="
+          echo "=== SMART TEST DETECTOR ==="
           
-          # Lấy file thay đổi so với origin/main
-          FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null || echo "")
-          
-          if [ -z "$FILES" ]; then
-            echo "✅ Không có file nào thay đổi"
-            exit 0
-          fi
-          
-          # Tìm app có tests từ file thay đổi
-          APPS=""
-          while IFS= read -r FILE; do
-            APP=$(echo "$FILE" | cut -d'/' -f1)
-            if [ -d "$APP/tests" ]; then
-              if [[ ! " $APPS " =~ " $APP " ]]; then
-                APPS="$APPS $APP"
-              fi
-            fi
-          done <<< "$FILES"
+          # Lấy app từ file thay đổi
+          APPS=$(git diff --name-only origin/main...HEAD 2>/dev/null | cut -d'/' -f1 | sort -u)
           
           if [ -z "$APPS" ]; then
-            echo "✅ Không có app nào cần test"
+            echo "✅ Không có app nào thay đổi"
             exit 0
           fi
           
-          echo "📁 App cần test:$APPS"
+          echo "📁 Apps có thay đổi: $APPS"
+          echo ""
           
-          # Chạy test từng app
+          # Biến để lưu test files/paths
+          TEST_PATHS=""
+          
           for APP in $APPS; do
-            echo ""
-            echo "🧪 Testing $APP..."
-            python3 -m pytest "$APP/" -q --tb=short || exit 1
+            echo "🔍 Kiểm tra $APP..."
+            
+            # TRƯỜNG HỢP 1: test_*.py trong app folder (của bạn)
+            if compgen -G "$APP/test_*.py" > /dev/null; then
+              echo "  ✓ Tìm thấy test_*.py trong $APP/"
+              TEST_PATHS="$TEST_PATHS $APP/test_*.py"
+            fi
+            
+            # TRƯỜNG HỢP 2: *_test.py trong app folder
+            if compgen -G "$APP/*_test.py" > /dev/null; then
+              echo "  ✓ Tìm thấy *_test.py trong $APP/"
+              TEST_PATHS="$TEST_PATHS $APP/*_test.py"
+            fi
+            
+            # TRƯỜNG HỢP 3: tests/ folder với test files
+            if [ -d "$APP/tests" ]; then
+              echo "  ✓ Tìm thấy folder $APP/tests/"
+              TEST_PATHS="$TEST_PATHS $APP/tests/"
+            fi
+            
+            # TRƯỜNG HỢP 4: tests/test_*.py trong folder tests
+            if compgen -G "$APP/tests/test_*.py" > /dev/null; then
+              echo "  ✓ Tìm thấy test_*.py trong $APP/tests/"
+              TEST_PATHS="$TEST_PATHS $APP/tests/test_*.py"
+            fi
           done
           
-          echo "✅ Tất cả tests passed!"
+          if [ -z "$TEST_PATHS" ]; then
+            echo "⚠️  Không tìm thấy test files nào"
+            exit 0
+          fi
+          
+          echo ""
+          echo "🚀 Chạy tests..."
+          echo "Paths: $TEST_PATHS"
+          echo ""
+          
+          # Chạy pytest cho tất cả test paths
+          python3 -m pytest $TEST_PATHS -v --tb=short
+          
+          if [ $? -eq 0 ]; then
+            echo ""
+            echo "✅ TẤT CẢ TESTS PASSED!"
+            exit 0
+          else
+            echo ""
+            echo "❌ CÓ TESTS FAILED"
+            exit 1
+          fi
         language: system
         pass_filenames: false
         stages: [pre-push]

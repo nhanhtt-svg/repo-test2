@@ -18,7 +18,7 @@ def sum_positive_numbers(numbers):
         return sum(numbers)
     # Ngược lại: chỉ cộng số dương ở đầu và cuối
     total = 0
-    if numbers[0] < 0:
+    if numbers[0] > 0:
         total += numbers[0]
     if numbers[-1] > 0:
         total += numbers[-1]
