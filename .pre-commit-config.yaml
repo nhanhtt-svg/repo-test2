@@ -65,59 +65,7 @@ repos:
         types: [python]
         exclude: "tests/|tools/local-gate/"
         args: ["--config=tools/local-gate/rules.yaml", "--max-depth=2"]  # ← THÊM
-
-
-  # 6) Unit test pre-push (nếu muốn)
-  - repo: local
-    hooks:
-      - id: pytest-pre-push
-        name: "pytest - ALWAYS SHOW OUTPUT"
-        entry: |
-          exec 2>&1  # Redirect stderr to stdout
-          
-          echo "🧪 ===== PYTEST HOOK START ====="
-          echo ""
-          
-          echo "📌 Current commit:"
-          git log --oneline -1
-          echo ""
-          
-          echo "📊 Checking diff vs origin/main..."
-          DIFF_OUTPUT=$(git diff --name-only origin/main...HEAD 2>/dev/null)
-          
-          if [ -z "$DIFF_OUTPUT" ]; then
-            echo "✅ No differences found"
-            echo "   (branch may be up to date with origin/main)"
-          else
-            echo "📄 Changed files:"
-            echo "$DIFF_OUTPUT"
-            echo ""
-            
-            APPS=$(echo "$DIFF_OUTPUT" | cut -d'/' -f1 | sort -u)
-            echo "🏷️  Apps detected: $APPS"
-            echo ""
-            
-            echo "🔍 Looking for test files..."
-            for APP in $APPS; do
-              if compgen -G "$APP/test_*.py" > /dev/null; then
-                echo "   ✅ $APP: has test_*.py files"
-              elif [ -d "$APP/tests" ]; then
-                echo "   ✅ $APP: has tests/ folder"
-              else
-                echo "   ⚠️  $APP: no test files found"
-              fi
-            done
-          fi
-          
-          echo ""
-          echo "🎯 ===== HOOK COMPLETED ====="
-          exit 0
-        language: system
-        pass_filenames: false
-        stages: [pre-push]
-        always_run: true
-        verbose: true
-  
+ 
   # - repo: local
   #   hooks:
   #     - id: pytest-pre-push
@@ -127,4 +75,43 @@ repos:
   #       pass_filenames: false
   #       stages: [pre-push]
 
-  
+  - repo: local
+    hooks:
+      - id: pytest-pre-push
+        name: "Smart pytest - chỉ test app đã thay đổi"
+        entry: |
+
+          CHANGED_APPS=$(git diff --name-only origin/main...HEAD 2>/dev/null | 
+                        grep -E '^(app_a|app_b)/' | 
+                        cut -d/ -f1 | 
+                        sort -u)
+          
+          if [ -z "$CHANGED_APPS" ]; then
+            echo "✅ Không có app nào thay đổi. Bỏ qua test."
+            exit 0
+          fi
+          
+          echo "🔍 Các app cần test: $CHANGED_APPS"
+          FAILED=0
+          
+          for APP in $CHANGED_APPS; do
+            if [ -d "$APP/tests" ]; then
+              echo "📁 Đang test $APP..."
+              if ! python3 -m pytest "$APP/tests/" -q --tb=short; then
+                echo "❌ Test $APP thất bại!"
+                FAILED=1
+              fi
+            else
+              echo "⚠️  Không tìm thấy tests/ trong $APP"
+            fi
+          done
+          
+          if [ $FAILED -eq 1 ]; then
+            echo "❌ Một số test thất bại. Push bị chặn."
+            exit 1
+          fi
+          
+          echo "✅ Tất cả test đã pass!"
+        language: system
+        pass_filenames: false
+        stages: [pre-push]
