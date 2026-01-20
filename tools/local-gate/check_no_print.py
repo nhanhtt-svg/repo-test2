@@ -22,7 +22,7 @@ class NoPrintChecker:
     def _load_config(self) -> dict:
         """Load configuration from YAML file."""
         try:
-            with open(self.config_path, 'r', encoding='utf-8') as f:
+            with open(self.config_path, "r", encoding="utf-8") as f:
                 return yaml.safe_load(f) or {}
         except FileNotFoundError:
             print(f"⚠️ Config file not found: {self.config_path}")
@@ -34,13 +34,13 @@ class NoPrintChecker:
     def _is_allowed_file(self, filepath: str) -> bool:
         """Check if file is allowed to have print()."""
         # Check global ignore patterns
-        ignore_patterns = self.config.get('ignore', [])
+        ignore_patterns = self.config.get("ignore", [])
         for pattern in ignore_patterns:
             if pattern and re.match(pattern, filepath):
                 return True
 
         # Check specific allow patterns for print
-        allow_patterns = self.config.get('no_print', {}).get('allow_in', [])
+        allow_patterns = self.config.get("no_print", {}).get("allow_in", [])
         for pattern in allow_patterns:
             if pattern and re.match(pattern, filepath):
                 return True
@@ -49,7 +49,7 @@ class NoPrintChecker:
 
     def check_file(self, filepath: str) -> List[str]:
         """Check a single Python file for print() statements."""
-        if not filepath.endswith('.py'):
+        if not filepath.endswith(".py"):
             return []
 
         # Skip if file is allowed to have print()
@@ -59,7 +59,7 @@ class NoPrintChecker:
         violations = []
 
         try:
-            with open(filepath, 'r', encoding='utf-8') as f:
+            with open(filepath, "r", encoding="utf-8") as f:
                 content = f.read()
 
             tree = ast.parse(content, filename=filepath)
@@ -67,9 +67,9 @@ class NoPrintChecker:
             for node in ast.walk(tree):
                 if isinstance(node, ast.Call):
                     if isinstance(node.func, ast.Name):
-                        if node.func.id == 'print':
-                            message = self.config.get('no_print', {}).get(
-                                'message', 'print() is not allowed in production code'
+                        if node.func.id == "print":
+                            message = self.config.get("no_print", {}).get(
+                                "message", "print() is not allowed in production code"
                             )
                             violations.append(f"{filepath}:{node.lineno}: {message}")
 
@@ -107,11 +107,11 @@ def main():
     """Main entry point."""
     import argparse
 
-    parser = argparse.ArgumentParser(description='Check for print() statements')
+    parser = argparse.ArgumentParser(description="Check for print() statements")
     parser.add_argument(
-        '--config', default='tools/local-gate/rules.yaml', help='Path to config file'
+        "--config", default="tools/local-gate/rules.yaml", help="Path to config file"
     )
-    parser.add_argument('files', nargs='+', help='Python files to check')
+    parser.add_argument("files", nargs="+", help="Python files to check")
 
     args = parser.parse_args()
 
