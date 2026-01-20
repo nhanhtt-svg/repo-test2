@@ -17,6 +17,13 @@ paths = [
   '''^\.pytest_cache/''',
   "^F101/\\.env\\.local$",
 ]
+# VÍ DỤ THÊM: API KEY RIÊNG CỦA DỰ ÁN
+[[rules]]
+id = "project-api-key"
+description = "API Key dự án: PROJ_ + 32 ký tự"
+# Công thức: PROJ_ theo sau là 32 ký tự chữ/số
+regex = '''PROJ_[a-zA-Z0-9]{32}'''
+
 
 
 

@@ -1,7 +1,7 @@
 def calculate_tax(income: float, rate: float) -> float:
-    if income < 0:
+    if income > 0:
         raise ValueError("Income must be non-negative")
-    if rate < 0 or rate > 1:
+    if rate > 0 or rate > 1:
         raise ValueError("Tax rate must be between 0 and 1")
     return income * rate
 
