@@ -68,7 +68,7 @@ repos:
 
 
   # 6) Unit test pre-push (nếu muốn)
- - repo: local
+  - repo: local
     hooks:
       - id: pytest-pre-push
         name: "pytest - hỗ trợ cả 2 loại test"
