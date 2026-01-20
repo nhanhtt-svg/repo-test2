@@ -71,74 +71,82 @@ repos:
   - repo: local
     hooks:
       - id: pytest-pre-push
-        name: "pytest - hỗ trợ cả 2 loại test"
+        name: "🧪 pytest - VERBOSE output"
         entry: |
-          echo "=== SMART TEST DETECTOR ==="
-          
-          # Lấy app từ file thay đổi
-          APPS=$(git diff --name-only origin/main...HEAD 2>/dev/null | cut -d'/' -f1 | sort -u)
-          
-          if [ -z "$APPS" ]; then
-            echo "✅ Không có app nào thay đổi"
-            exit 0
-          fi
-          
-          echo "📁 Apps có thay đổi: $APPS"
+          echo "=== SMART TEST DETECTOR (VERBOSE) ==="
           echo ""
           
-          # Biến để lưu test files/paths
+          # 1. Lấy file thay đổi
+          FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null)
+          echo "📊 Git diff output:"
+          if [ -z "$FILES" ]; then
+            echo "  (empty - no files changed)"
+          else
+            echo "$FILES" | sed 's/^/  /'
+          fi
+          echo ""
+          
+          # 2. Lấy apps
+          APPS=$(echo "$FILES" | cut -d'/' -f1 | sort -u)
+          echo "📁 Apps detected:"
+          if [ -z "$APPS" ]; then
+            echo "  (no apps detected)"
+          else
+            echo "  $APPS"
+          fi
+          echo ""
+          
+          # 3. Tìm test files
           TEST_PATHS=""
+          FOUND_TESTS=0
           
           for APP in $APPS; do
-            echo "🔍 Kiểm tra $APP..."
+            echo "🔍 Scanning $APP..."
             
-            # TRƯỜNG HỢP 1: test_*.py trong app folder (của bạn)
-            if compgen -G "$APP/test_*.py" > /dev/null; then
-              echo "  ✓ Tìm thấy test_*.py trong $APP/"
+            # Pattern 1: test_*.py trong app
+            TESTS=$(ls $APP/test_*.py 2>/dev/null | wc -l)
+            if [ $TESTS -gt 0 ]; then
+              echo "  ✅ Found $TESTS test_*.py files"
               TEST_PATHS="$TEST_PATHS $APP/test_*.py"
+              FOUND_TESTS=1
             fi
             
-            # TRƯỜNG HỢP 2: *_test.py trong app folder
-            if compgen -G "$APP/*_test.py" > /dev/null; then
-              echo "  ✓ Tìm thấy *_test.py trong $APP/"
-              TEST_PATHS="$TEST_PATHS $APP/*_test.py"
-            fi
-            
-            # TRƯỜNG HỢP 3: tests/ folder với test files
+            # Pattern 2: tests folder
             if [ -d "$APP/tests" ]; then
-              echo "  ✓ Tìm thấy folder $APP/tests/"
-              TEST_PATHS="$TEST_PATHS $APP/tests/"
-            fi
-            
-            # TRƯỜNG HỢP 4: tests/test_*.py trong folder tests
-            if compgen -G "$APP/tests/test_*.py" > /dev/null; then
-              echo "  ✓ Tìm thấy test_*.py trong $APP/tests/"
-              TEST_PATHS="$TEST_PATHS $APP/tests/test_*.py"
+              echo "  ✅ Found tests/ folder"
+              TEST_PATHS="$TEST_PATHS $APP/tests"
+              FOUND_TESTS=1
             fi
           done
           
-          if [ -z "$TEST_PATHS" ]; then
-            echo "⚠️  Không tìm thấy test files nào"
+          echo ""
+          
+          # 4. Chạy tests nếu có
+          if [ $FOUND_TESTS -eq 0 ]; then
+            echo "⚠️  No test files found in changed apps"
+            echo "✅ Hook passed (nothing to test)"
             exit 0
           fi
           
+          echo "🚀 Test paths to run:"
+          echo "  $TEST_PATHS"
           echo ""
-          echo "🚀 Chạy tests..."
-          echo "Paths: $TEST_PATHS"
+          echo "=== RUNNING PYTEST ==="
+          
+          # Chạy pytest với output đầy đủ
+          python3 -m pytest $TEST_PATHS -v --tb=short --disable-warnings
+          
+          EXIT_CODE=$?
           echo ""
+          echo "=== PYTEST EXIT CODE: $EXIT_CODE ==="
           
-          # Chạy pytest cho tất cả test paths
-          python3 -m pytest $TEST_PATHS -v --tb=short
-          
-          if [ $? -eq 0 ]; then
-            echo ""
-            echo "✅ TẤT CẢ TESTS PASSED!"
-            exit 0
+          if [ $EXIT_CODE -eq 0 ]; then
+            echo "🎉 ALL TESTS PASSED!"
           else
-            echo ""
-            echo "❌ CÓ TESTS FAILED"
-            exit 1
+            echo "❌ TESTS FAILED!"
           fi
+          
+          exit $EXIT_CODE
         language: system
         pass_filenames: false
         stages: [pre-push]
