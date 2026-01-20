@@ -74,12 +74,12 @@ repos:
   #       language: system
   #       pass_filenames: false
   #       stages: [pre-push]
+
   - repo: local
     hooks:
       - id: pytest-pre-push
         name: "Smart pytest - chỉ test app đã thay đổi"
         entry: |
-          # Tìm app nào có file thay đổi
           CHANGED_APPS=$(git diff --name-only origin/main...HEAD 2>/dev/null | 
                         grep -E '^(app_a|app_b)/' | 
                         cut -d/ -f1 | 
