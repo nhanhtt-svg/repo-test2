@@ -66,52 +66,11 @@ repos:
         exclude: "tests/|tools/local-gate/"
         args: ["--config=tools/local-gate/rules.yaml", "--max-depth=2"]  # ← THÊM
  
-  # - repo: local
-  #   hooks:
-  #     - id: pytest-pre-push
-  #       name: "pytest (unit) - pre-push gate"
-  #       entry: bash -lc "python3 -m pytest -q --tb=short"
-  #       language: system
-  #       pass_filenames: false
-  #       stages: [pre-push]
-
   - repo: local
     hooks:
       - id: pytest-pre-push
-        name: "Smart pytest - chỉ test app đã thay đổi"
-        entry: |
-
-          CHANGED_APPS=$(git diff --name-only origin/main...HEAD 2>/dev/null | 
-                        grep -E '^(app_a|app_b)/' | 
-                        cut -d/ -f1 | 
-                        sort -u)
-          
-          if [ -z "$CHANGED_APPS" ]; then
-            echo "✅ Không có app nào thay đổi. Bỏ qua test."
-            exit 0
-          fi
-          
-          echo "🔍 Các app cần test: $CHANGED_APPS"
-          FAILED=0
-          
-          for APP in $CHANGED_APPS; do
-            if [ -d "$APP/tests" ]; then
-              echo "📁 Đang test $APP..."
-              if ! python3 -m pytest "$APP/tests/" -q --tb=short; then
-                echo "❌ Test $APP thất bại!"
-                FAILED=1
-              fi
-            else
-              echo "⚠️  Không tìm thấy tests/ trong $APP"
-            fi
-          done
-          
-          if [ $FAILED -eq 1 ]; then
-            echo "❌ Một số test thất bại. Push bị chặn."
-            exit 1
-          fi
-          
-          echo "✅ Tất cả test đã pass!"
+        name: "pytest (unit) - pre-push gate"
+        entry: bash -lc "python3 -m pytest -q --tb=short"
         language: system
         pass_filenames: false
         stages: [pre-push]
