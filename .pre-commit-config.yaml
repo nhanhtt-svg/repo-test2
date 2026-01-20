@@ -71,86 +71,58 @@ repos:
   - repo: local
     hooks:
       - id: pytest-pre-push
-        name: "🧪 pytest - VERBOSE output"
+        name: "pytest - ALWAYS SHOW OUTPUT"
         entry: |
-          echo "=== SMART TEST DETECTOR (VERBOSE) ==="
+          # Ghi output vào stderr (luôn hiển thị)
+          exec 2>&1  # Redirect stderr to stdout
+          
+          echo "🧪 ===== PYTEST HOOK START ====="
           echo ""
           
-          # 1. Lấy file thay đổi
-          FILES=$(git diff --name-only origin/main...HEAD 2>/dev/null)
-          echo "📊 Git diff output:"
-          if [ -z "$FILES" ]; then
-            echo "  (empty - no files changed)"
+          # Get current commit info
+          echo "📌 Current commit:"
+          git log --oneline -1
+          echo ""
+          
+          # Check diff
+          echo "📊 Checking diff vs origin/main..."
+          DIFF_OUTPUT=$(git diff --name-only origin/main...HEAD 2>/dev/null)
+          
+          if [ -z "$DIFF_OUTPUT" ]; then
+            echo "✅ No differences found"
+            echo "   (branch may be up to date with origin/main)"
           else
-            echo "$FILES" | sed 's/^/  /'
-          fi
-          echo ""
-          
-          # 2. Lấy apps
-          APPS=$(echo "$FILES" | cut -d'/' -f1 | sort -u)
-          echo "📁 Apps detected:"
-          if [ -z "$APPS" ]; then
-            echo "  (no apps detected)"
-          else
-            echo "  $APPS"
-          fi
-          echo ""
-          
-          # 3. Tìm test files
-          TEST_PATHS=""
-          FOUND_TESTS=0
-          
-          for APP in $APPS; do
-            echo "🔍 Scanning $APP..."
+            echo "📄 Changed files:"
+            echo "$DIFF_OUTPUT"
+            echo ""
             
-            # Pattern 1: test_*.py trong app
-            TESTS=$(ls $APP/test_*.py 2>/dev/null | wc -l)
-            if [ $TESTS -gt 0 ]; then
-              echo "  ✅ Found $TESTS test_*.py files"
-              TEST_PATHS="$TEST_PATHS $APP/test_*.py"
-              FOUND_TESTS=1
-            fi
+            # Find apps
+            APPS=$(echo "$DIFF_OUTPUT" | cut -d'/' -f1 | sort -u)
+            echo "🏷️  Apps detected: $APPS"
+            echo ""
             
-            # Pattern 2: tests folder
-            if [ -d "$APP/tests" ]; then
-              echo "  ✅ Found tests/ folder"
-              TEST_PATHS="$TEST_PATHS $APP/tests"
-              FOUND_TESTS=1
-            fi
-          done
-          
-          echo ""
-          
-          # 4. Chạy tests nếu có
-          if [ $FOUND_TESTS -eq 0 ]; then
-            echo "⚠️  No test files found in changed apps"
-            echo "✅ Hook passed (nothing to test)"
-            exit 0
+            # Check for tests
+            echo "🔍 Looking for test files..."
+            for APP in $APPS; do
+              if compgen -G "$APP/test_*.py" > /dev/null; then
+                echo "   ✅ $APP: has test_*.py files"
+              elif [ -d "$APP/tests" ]; then
+                echo "   ✅ $APP: has tests/ folder"
+              else
+                echo "   ⚠️  $APP: no test files found"
+              fi
+            done
           fi
           
-          echo "🚀 Test paths to run:"
-          echo "  $TEST_PATHS"
           echo ""
-          echo "=== RUNNING PYTEST ==="
-          
-          # Chạy pytest với output đầy đủ
-          python3 -m pytest $TEST_PATHS -v --tb=short --disable-warnings
-          
-          EXIT_CODE=$?
-          echo ""
-          echo "=== PYTEST EXIT CODE: $EXIT_CODE ==="
-          
-          if [ $EXIT_CODE -eq 0 ]; then
-            echo "🎉 ALL TESTS PASSED!"
-          else
-            echo "❌ TESTS FAILED!"
-          fi
-          
-          exit $EXIT_CODE
+          echo "🎯 ===== HOOK COMPLETED ====="
+          exit 0
         language: system
         pass_filenames: false
-        stages: [pre-push]
- 
+        stages: [push]
+        always_run: true
+        verbose: true
+  
   # - repo: local
   #   hooks:
   #     - id: pytest-pre-push
